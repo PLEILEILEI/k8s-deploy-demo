@@ -1,7 +1,7 @@
 <?php
 class Db {
     function getUser($selectName) {
-        $host = '10.209.215.250:3306';
+        $host = 'IP:3306';
         $database = 'test_db';
         $username = 'root';
         $password = 'root';
