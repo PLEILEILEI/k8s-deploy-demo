@@ -1,0 +1,56 @@
+apiVersion: apps/v1                                                                                                  
+kind: Deployment                                                                                                     
+metadata:                                                                                                            
+  name: app-ngx-php                                                                                                  
+  namespace: app-test                                                                                                
+  labels:                                                                                                            
+    app: app-ngx-php                                                                                                 
+spec:                                                                                                                
+  replicas: 2                                                                                                        
+  selector:                                                                                                          
+    matchLabels:                                                                                                     
+      app: app-ngx-php                                                                                               
+  template:                                                                                                          
+    metadata:                                                                                                        
+      labels:                                                                                                        
+        app: app-ngx-php                                                                                             
+    spec:                                                                                                            
+      containers:                                                                                                    
+      - name: nginx                                                                                                  
+        image: r.qihoo.cloud/library/nginx:1.15.5  #使用公司的nginx镜像                                                     
+        imagePullPolicy: IfNotPresent                                                                                
+        ports:                                                                                                       
+        - containerPort: 80                                                                                          
+          name: nginx-port                                                                                           
+        volumeMounts:                                                                                                
+        - name: nginx-conf                                                                                           
+          mountPath: /etc/nginx/conf.d                                                                               
+      - name: php                                                                                                    
+        image: dddatago/k8s-demo-php:latest #我们的服务镜像                                                               
+        imagePullPolicy: IfNotPresent                                                                                
+        ports:                                                                                                       
+        - containerPort: 9000                                                                                        
+          name: fpm-port                                                                                             
+      volumes:                                                                                                       
+      - name: nginx-conf                                                                                             
+        configMap:                                                                                                   
+          name: apptest-ngx-cfgmap #上面创建的configmap                                                                   
+          items:                                                                                                     
+          - key: ngx-cfgmap.conf #相当于将nginx-confgmap.conf里的内容拷贝到/etc/nginx/conf.d目录下的my-nginx.conf文件中                
+            path: my-nginx.conf 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-ngx-php
+  namespace: app-test
+spec:
+  type: NodePort
+  ports:
+  - name: app-nginx-php-port
+    port: 80
+    protocol: TCP
+    targetPort: 80
+    nodePort: 30009
+  selector:
+    app: app-ngx-php

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-golang
+  namespace: app-test
+  labels:
+    app: app-golang
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-golang
+  template:
+    metadata:
+      labels:
+        app: app-golang
+    spec:
+      containers:
+      - name: golang
+        image: dddatago/k8s-demo-go:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50051
+          name: app-golang-port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-server
+  namespace: app-test
+spec:
+  ports:
+  - name: app-golang-port
+    port: 80
+    protocol: TCP
+    targetPort: 50051
+  selector:
+    app: app-golang
